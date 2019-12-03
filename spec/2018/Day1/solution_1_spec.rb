@@ -1,4 +1,4 @@
-require '2019/Day1/frequency_calculator'
+require '2018/Day1/frequency_calculator'
 
 RSpec.describe FrequencyCalculator, "#calculated_value" do
   it "calculates the correct value from a sequence of strings containing either + or -" do

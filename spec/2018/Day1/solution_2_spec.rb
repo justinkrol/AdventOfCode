@@ -1,4 +1,4 @@
-require '2019/Day1/duplicate_frequency_finder'
+require '2018/Day1/duplicate_frequency_finder'
 
 RSpec.describe DuplicateFrequencyFinder, "#first_duplicate_value" do
   it "calculates the correct value from a sequence of strings containing either + or -" do
