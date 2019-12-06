@@ -1,9 +1,10 @@
 class Node
-  attr_accessor :x, :y
+  attr_accessor :x, :y, :path_distance
 
-  def initialize(x, y)
+  def initialize(x, y, path_distance: 0)
     @x = x
     @y = y
+    @path_distance = path_distance
   end
 
   def sibling_from_move(instruction)
@@ -11,7 +12,11 @@ class Node
     # find new_x by adding to @x
     # find new_y by adding to @y
 
-    Node.new(x + instruction.x_change, y + instruction.y_change)
+    x_delta = instruction.x_delta
+    y_delta = instruction.y_delta
+
+    edge_distance = x_delta.abs + y_delta.abs
+    Node.new(x + x_delta, y + y_delta, path_distance: path_distance + edge_distance)
   end
 
   def manhattan_distance_from(node)
@@ -36,11 +41,11 @@ class Instruction
     @instruction_string = instruction_string
   end
 
-  def x_change
+  def x_delta
     parsed[0]
   end
 
-  def y_change
+  def y_delta
     parsed[1]
   end
 
@@ -98,7 +103,10 @@ class Edge
     horizontal_y = horizontal.start_node.y
 
     if (x_set[0]..x_set[1]).cover?(vertical_x) && (y_set[0]..y_set[1]).cover?(horizontal_y)
-      Node.new(vertical_x, horizontal_y)
+      path_distance_horizontal = horizontal.start_node.path_distance + (horizontal.start_node.x - vertical_x).abs
+      path_distance_vertical = vertical.start_node.path_distance + (vertical.start_node.y - horizontal_y).abs
+      total_path_distance = path_distance_horizontal + path_distance_vertical
+      Node.new(vertical_x, horizontal_y, path_distance: total_path_distance)
     else
       nil
     end
@@ -121,9 +129,15 @@ class Wire
     distances[0] > 0 ? distances[0] : distances[1]
   end
 
+  def closest_path_distance_intersection_with(other_wire)
+    distances = intersection_nodes_with(other_wire)
+      .map { |intersection_node| intersection_node.path_distance }.sort
+    distances[0] > 0 ? distances[0] : distances[1]
+  end
+
   def edges
     @edges ||= begin
-      current_node = Node.new(0, 0)
+      current_node = Node.new(0, 0, path_distance: 0)
       @path.each_with_object([]) do |move_instruction, edges|
         end_node = current_node.sibling_from_move(Instruction.new(move_instruction))
         edges << Edge.new(current_node, end_node)
