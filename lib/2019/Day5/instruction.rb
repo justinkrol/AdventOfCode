@@ -1,5 +1,3 @@
-require 'byebug'
-
 class Instruction
   attr_reader :parameter_modes
 
@@ -15,7 +13,7 @@ class Instruction
     perform
   end
 
-  def mem_count
+  def new_pointer
     raise NotImplementedError
   end
 
@@ -49,8 +47,8 @@ class Instruction
 end
 
 class ArithmeticInstruction < Instruction
-  def mem_count
-    4
+  def new_pointer
+    @instruction_pointer + 4
   end
 
   private
@@ -88,8 +86,8 @@ class MultiplicationInstruction < ArithmeticInstruction
 end
 
 class InputInstruction < Instruction
-  def mem_count
-    2
+  def new_pointer
+    @instruction_pointer + 2
   end
 
   private
@@ -106,8 +104,8 @@ class InputInstruction < Instruction
 end
 
 class OutputInstruction < Instruction
-  def mem_count
-    2
+  def new_pointer
+    @instruction_pointer + 2
   end
 
   private
@@ -118,6 +116,69 @@ class OutputInstruction < Instruction
 
   def load_parameters
     @value_1 = load_parameter(0)
+  end
+end
+
+class JumpInstruction < Instruction
+  def new_pointer
+    if jump?
+      @value_2
+    else
+      @instruction_pointer + 3
+    end
+  end
+
+  private
+
+  def perform
+    # do nothing
+  end
+
+  def load_parameters
+    @value_1 = load_parameter(0)
+    @value_2 = load_parameter(1)
+  end
+end
+
+class JumpIfTrueInstruction < JumpInstruction
+  def jump?
+    @value_1 != 0
+  end
+end
+
+class JumpIfFalseInstruction < JumpInstruction
+  def jump?
+    @value_1 == 0
+  end
+end
+
+class ComparisonInstruction < Instruction
+  def new_pointer
+    @instruction_pointer + 4
+  end
+
+  private
+
+  def perform
+    @memory[@write_position] = comparison? ? 1 : 0
+  end
+
+  def load_parameters
+    @value_1 = load_parameter(0)
+    @value_2 = load_parameter(1)
+    @write_position = load_write_position(2)
+  end
+end
+
+class CompareLessThanInstruction < ComparisonInstruction
+  def comparison?
+    @value_1 < @value_2
+  end
+end
+
+class CompareEqualsInstruction < ComparisonInstruction
+  def comparison?
+    @value_1 == @value_2
   end
 end
 
@@ -133,6 +194,10 @@ class InstructionFactory
     2 => MultiplicationInstruction,
     3 => InputInstruction,
     4 => OutputInstruction,
+    5 => JumpIfTrueInstruction,
+    6 => JumpIfFalseInstruction,
+    7 => CompareLessThanInstruction,
+    8 => CompareEqualsInstruction,
     99 => HaltInstruction,
   }.freeze
 

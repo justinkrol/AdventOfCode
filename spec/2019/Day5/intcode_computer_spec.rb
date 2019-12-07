@@ -1,6 +1,6 @@
 require '2019/Day5/intcode_computer'
 
-RSpec.describe IntcodeComputer, "#process_list!" do
+RSpec.describe IntcodeComputer, "#process!" do
   it "performs the operations correctly" do
     intcode_computer = IntcodeComputer.new
 

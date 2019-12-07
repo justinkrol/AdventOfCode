@@ -12,7 +12,7 @@ class IntcodeComputer
       return if instruction.halt?
 
       instruction.process(memory, pointer)
-      pointer += instruction.mem_count
+      pointer = instruction.new_pointer
     end
   end
 end
